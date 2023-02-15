@@ -1,0 +1,64 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+- ../../../../platform_components/maintenance-cli
+namespace: <<namespace>>
+commonLabels:
+  app: maintenance-cli
+  env: <<namespace>>
+patchesJson6902:
+- target:
+    group: batch
+    version: v1
+    kind: CronJob
+    name: maintenance-cli-app
+  patch: |-
+    - op: replace
+      path: /spec/jobTemplate/spec/template/spec/containers/0/image
+      value: <<maintenance_cli_image_repo_uri>>:<<maintenance_cli_image_tag>>
+    - op: add
+      path: /spec/jobTemplate/spec/template/spec/containers/0/env/-
+      value:
+        name: CINCHY_INSTANCE_URL
+        value: <<host_name>><<application_path>>
+    - op: replace
+      path: /spec/jobTemplate/spec/template/spec/volumes/0
+      value:
+        name: maintenance-cli-volume-appsettings
+        csi:
+          driver: secrets-store.csi.k8s.io
+          readOnly: true
+          volumeAttributes:
+            secretProviderClass: "maintenance-cli-secret-appsettings"
+- target:
+    group: secrets-store.csi.x-k8s.io
+    version: v1
+    kind: SecretProviderClass
+    name: maintenance-cli-secret-appsettings
+  patch: |-
+    - op: replace
+      path: /spec/parameters
+      value: 
+        objects:  |
+          - objectName: "maintenance-cli-secret-appsettings-<<namespace>>"
+            objectType: "secretsmanager"
+            jmesPath:
+            - path: maintenanceclisecretappsettings
+              objectAlias: appsettings.json
+- target:
+    version: v1
+    kind: Secret
+    name: maintenance-cli-secret-appsettings
+  patch: |-
+    - op: replace
+      path: /data/appsettings.json
+      value: <<maintenance_cli_appsettings_json>>
+- target:
+    group: logging.banzaicloud.io
+    version: v1beta1
+    kind: Output
+    name: maintenance-cli-logging-stdout
+  patch: |-
+    - op: replace
+      path: /spec/elasticsearch/index_name
+      value: <<namespace>>-maintenance-cli-app

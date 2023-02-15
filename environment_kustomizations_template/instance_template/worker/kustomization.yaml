@@ -1,0 +1,59 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+- ../../../../platform_components/worker
+namespace: <<namespace>>
+commonLabels:
+  app: worker
+  env: <<namespace>>
+patchesJson6902:
+- target:
+    group: apps
+    version: v1
+    kind: Deployment
+    name: worker-app
+  patch: |-
+    - op: replace
+      path: /spec/template/spec/containers/0/image
+      value: <<worker_image_repo_uri>>:<<worker_image_tag>>
+    - op: replace
+      path: /spec/template/spec/volumes/0
+      value:
+        name: worker-volume-appsettings
+        csi:
+          driver: secrets-store.csi.k8s.io
+          readOnly: true
+          volumeAttributes:
+            secretProviderClass: "worker-secret-appsettings"
+- target:
+    group: secrets-store.csi.x-k8s.io
+    version: v1
+    kind: SecretProviderClass
+    name: worker-secret-appsettings
+  patch: |-
+    - op: replace
+      path: /spec/parameters
+      value: 
+        objects:  |
+          - objectName: "worker-secret-appsettings-<<namespace>>"
+            objectType: "secretsmanager"
+            jmesPath:
+            - path: workersecretappsettings
+              objectAlias: appsettings.json
+- target:
+    version: v1
+    kind: Secret
+    name: worker-secret-appsettings
+  patch: |-
+    - op: replace
+      path: /data/appsettings.json
+      value: <<worker_appsettings_json>>
+- target:
+    group: logging.banzaicloud.io
+    version: v1beta1
+    kind: Output
+    name: worker-logging-stdout
+  patch: |-
+    - op: replace
+      path: /spec/elasticsearch/index_name
+      value: <<namespace>>-worker-app

@@ -1,0 +1,82 @@
+{
+  "ConfigSettings": {
+    "AppSettings": {
+      "StsAuthorityUri": "<<protocol>>://<<host_name>><<application_path>>/idp",
+      "AllowLogFileDownload": false,
+      "LogDirectoryPath": "",
+      "SSOLogPath": "",
+      "UseHttps": <<use_https_flag>>,
+      "HstsMaxAge": 2592000,
+      "HstsIncludeSubDomains": false,
+      "HstsPreload": false,
+      "TlsVersion": "1.2",
+      "RouteDebuggerEnabled": false,
+      "RefreshCacheTimeInMin": 10,
+      "DefaultExpirationCacheTimeInMin": 360,
+      "DBType": "<<dbtype>>",
+      "StorageType": "<<web_storage_type>>",
+      "MaxRequestBodySize" : <<web_max_request_body_size>>
+    },
+    "ReverseProxySettings": {
+      "IsEnabled": true,
+      "BasePath": "<<application_path>>",
+      "UseHttps": <<use_https_flag>>
+    },
+    "ConnectionStrings": {
+      "SqlServer": "<<database_connection_string>>",
+      "Redis": "redis-redis-cluster.redis.svc.cluster.local:6379"
+    },
+    "AzureBlobStorageSettings": {
+      "ConnectionString": "<<azure_blob_storage_conn_str>>",
+      "Container": "<<web_storage_container_name>>",
+      "BasePath": "<<instance_name>>/<<web_storage_basepath>>"
+    },
+    "S3Settings": {
+      "AccessKey": "<<cinchy_s3_access_key>>",
+      "SecretAccessKey": "<<cinchy_s3_secret_access_key>>",
+      "Region": "<<aws_region>>",
+      "Bucket": "<<cinchy_s3_bucket>>",
+      "BasePath": "<<instance_name>>/<<web_storage_basepath>>",
+      "ServiceURL": "<<cinchy_s3_service_url>>"
+    },
+    "ClusterCommunicationSettings": {
+      "UseKafka": true,
+      "KafkaCacheTopic": "",
+      "KafkaClientConfig": {
+        "BootstrapServers": "kafka-cluster-kafka-bootstrap.kafka.svc.cluster.local:9092"
+      },
+      "ClusterIpAddresses": "",
+      "ClusterCommunicationProtocol": "http",
+      "ClusterCommunicationBaseUrl": "{PROTOCOL}://{IPADDRESS}/Cinchy"
+    }
+  },
+  "Logging": {
+    "MinimumLevel": {
+      "Default": "Debug",
+      "Override": {
+		    "Microsoft": "Warning",
+		    "Microsoft.Hosting.Lifetime": "Information",
+        "Cinchy.Web.Authentication.Handlers.AnonymousAuthenticationHandler": "Information"
+	    }
+    }
+  },
+  "Serilog": {
+    "MinimumLevel": {
+      "Default": "Debug",
+	    "Override": {
+		    "Microsoft": "Warning",
+		    "Microsoft.Hosting.Lifetime": "Information",
+        "Cinchy.Web.Authentication.Handlers.AnonymousAuthenticationHandler": "Information"
+	    }
+    },
+    "WriteTo": [
+      {
+        "Name": "Console",
+        "Args": {
+          "formatter": "Serilog.Formatting.Compact.CompactJsonFormatter, Serilog.Formatting.Compact"
+        }
+      }
+    ]
+  },
+  "AllowedHosts": "*"
+}
